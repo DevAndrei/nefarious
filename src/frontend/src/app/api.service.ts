@@ -37,6 +37,7 @@ export class ApiService {
   SEARCH_MEDIA_TYPE_TV = 'tv';
   SEARCH_MEDIA_TYPE_MOVIE = 'movie';
 
+  public isAppLoaded = false;
   public user: any;
   public userToken: string;
   public users: any; // staff only list of all users
@@ -81,6 +82,9 @@ export class ApiService {
           return of(null);
         }
       }),
+      tap(() => {
+        this.isAppLoaded = true;
+      })
     );
   }
 

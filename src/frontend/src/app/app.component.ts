@@ -26,6 +26,10 @@ export class AppComponent implements OnInit {
     return this.apiService.user && this.apiService.user.is_staff;
   }
 
+  public isAppLoaded(): Boolean {
+    return this.apiService.isAppLoaded;
+  }
+
   public isLoggedIn(): Boolean {
     return this.apiService.isLoggedIn();
   }
