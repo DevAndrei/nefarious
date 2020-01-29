@@ -59,11 +59,15 @@ export class ApiService {
     return this.loadFromStorage().pipe(
       mergeMap((data) => {
         if (this.user) {
-          console.log('logged in with token: %s, fetching user', this.userToken);
+          console.log('logged in with token: %s, fetching user...', this.userToken);
           return this.fetchUser().pipe(
             mergeMap(() => {
               console.log('fetching core data');
-              return this.fetchCoreData();
+              return this.fetchCoreData().pipe(
+                tap((x) => {
+                  this.fetchAndPollMedia().subscribe();
+                })
+              );
             }),
             catchError((error) => {
               // unauthorized response, remove existing user and token
@@ -113,13 +117,24 @@ export class ApiService {
 
   public fetchCoreData(): Observable<any> {
     return forkJoin(
-      this.fetchSettings(),
-      this.fetchWatchTVShows(),
-      this.fetchWatchTVSeasons(),
-      this.fetchWatchTVSeasonRequests(),
-      this.fetchWatchTVEpisodes(),
-      this.fetchWatchMovies(),
-      this.fetchQualityProfiles(),
+      [
+        this.fetchSettings(),
+        this.fetchQualityProfiles(),
+        ...this._getMediaQueries(),
+      ]
+    );
+  }
+
+  public fetchAndPollMedia(): Observable<any> {
+    return forkJoin(
+      [
+        ...this._getMediaQueries(),
+      ]).pipe(
+        tap((data) => {
+          setTimeout(() => {
+            return this.fetchAndPollMedia().subscribe();
+          }, 10000);
+        })
     );
   }
 
@@ -632,6 +647,16 @@ export class ApiService {
     const httpParams = new HttpParams({fromObject: params});
     const url = mediaType === this.SEARCH_MEDIA_TYPE_MOVIE ? this.API_URL_DISCOVER_MOVIES : this.API_URL_DISCOVER_TV;
     return this.http.get(url, {params: httpParams, headers: this._requestHeaders()});
+  }
+
+  protected _getMediaQueries(): Observable<any>[] {
+    return [
+      this.fetchWatchTVShows(),
+      this.fetchWatchTVSeasons(),
+      this.fetchWatchTVSeasonRequests(),
+      this.fetchWatchTVEpisodes(),
+      this.fetchWatchMovies(),
+    ];
   }
 
   protected _defaultParams() {
