@@ -64,7 +64,11 @@ export class ApiService {
           return this.fetchUser().pipe(
             mergeMap(() => {
               console.log('fetching core data');
-              return this.fetchCoreData();
+              return this.fetchCoreData().pipe(
+                tap(() => {
+                  this.isAppLoaded = true;
+                })
+              );
             }),
             catchError((error) => {
               // unauthorized response, remove existing user and token
@@ -82,9 +86,6 @@ export class ApiService {
           return of(null);
         }
       }),
-      tap(() => {
-        this.isAppLoaded = true;
-      })
     );
   }
 

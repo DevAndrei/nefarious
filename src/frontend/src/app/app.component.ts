@@ -19,7 +19,7 @@ export class AppComponent implements OnInit {
   }
 
   public hasSettings(): Boolean {
-    return Boolean(this.apiService.settings);
+    return !!this.apiService.settings;
   }
 
   public isStaff(): Boolean {
